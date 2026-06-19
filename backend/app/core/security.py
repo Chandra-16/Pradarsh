@@ -1,43 +1,28 @@
 from fastapi import HTTPException, status
-import httpx
 import jwt as pyjwt
 from app.core.config import settings
+
+# Automatically fetches Supabase's public keys to verify modern asymmetric tokens
+jwks_url = f"{settings.supabase_url.rstrip('/')}/auth/v1/.well-known/jwks.json"
+jwks_client = pyjwt.PyJWKClient(jwks_url)
 
 def verify_jwt(token: str) -> dict:
     """
     Verify a Supabase JWT token.
-    Supports both new ECC (P-256) and legacy HS256 tokens.
-    Uses Supabase's JWKS endpoint for ECC verification,
-    falls back to HS256 secret for legacy tokens.
+    Uses Supabase's JWKS endpoint for secure ECC (P-256) verification.
     """
-    # First try HS256 with the shared secret (works for legacy tokens)
     try:
+        # Retrieve the correct public key for this specific token
+        signing_key = jwks_client.get_signing_key_from_jwt(token)
+        
+        # Decode and rigorously verify the signature
         payload = pyjwt.decode(
             token,
-            settings.supabase_jwt_secret,
-            algorithms=["HS256"],
+            signing_key.key,
+            algorithms=["ES256", "RS256", "HS256"],
             options={"verify_aud": False},
         )
         return payload
-    except Exception:
-        pass
-
-    # Fall back: decode without verification to extract user info
-    # This is safe because Supabase validates the token itself
-    try:
-        payload = pyjwt.decode(
-            token,
-            options={"verify_signature": False},
-        )
-        user_id = payload.get("sub")
-        if not user_id:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token: missing user ID",
-            )
-        return payload
-    except HTTPException:
-        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
