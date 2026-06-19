@@ -42,7 +42,7 @@ const uploadService = {
       formData.append('file', file)
 
       // Send the file securely to your Python backend
-      const response = await fetch(`${API_URL}/uploads/screenshot`, {
+      const response = await fetch(`${API_URL}/uploads/screenshots`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
