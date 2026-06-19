@@ -30,7 +30,7 @@ export default function EditProject() {
           return
         }
         // Ownership check on frontend (backend enforces it too)
-        if (user && data.user_id !== user.id) {
+        if (user && data.user_id !== user.uid) {
           setNotOwner(true)
           return
         }
