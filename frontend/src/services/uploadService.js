@@ -4,14 +4,13 @@ import { auth } from './firebase'
 const API_URL = import.meta.env.VITE_API_URL || 'https://m-prabhath-pradarsh-api.hf.space'
 
 const uploadService = {
-  // If thumbnail is still using this service, route it to the backend too
   async uploadThumbnail(file) {
     const user = auth.currentUser
     if (!user) throw new Error('Not authenticated')
     const token = await user.getIdToken()
 
     const formData = new FormData()
-    formData.append('file', file)
+    formData.append('file', file) // Matches @router.post("/thumbnail") -> file: UploadFile
 
     const response = await fetch(`${API_URL}/uploads/thumbnail`, {
       method: 'POST',
@@ -34,33 +33,29 @@ const uploadService = {
     if (!user) throw new Error('Not authenticated')
     const token = await user.getIdToken()
 
-    const urls = []
-    const paths = []
-
+    const formData = new FormData()
+    
+    // Add all files to the SAME FormData object under the key 'files'
+    // This matches your backend's List[UploadFile] named 'files'
     for (const file of files) {
-      const formData = new FormData()
-      formData.append('file', file)
-
-      // Send the file securely to your Python backend
-      const response = await fetch(`${API_URL}/uploads/screenshots`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
-      })
-
-      if (!response.ok) {
-        const err = await response.json()
-        throw new Error(err.detail || 'Screenshot upload failed')
-      }
-
-      const data = await response.json()
-      urls.push(data.url)
-      paths.push(data.path)
+      formData.append('files', file)
     }
 
-    return { urls, paths, count: urls.length }
+    // Send everything in one single request
+    const response = await fetch(`${API_URL}/uploads/screenshots`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData
+    })
+
+    if (!response.ok) {
+      const err = await response.json()
+      throw new Error(err.detail || 'Screenshot upload failed')
+    }
+
+    return await response.json()
   },
 }
 
