@@ -31,13 +31,11 @@ export default function Navbar() {
   const avatarUrl = profile?.avatar_url
 
   const navLinkClass = ({ isActive }) =>
-    `relative px-5 py-2 text-sm font-semibold transition-colors duration-300 ${
-      isActive ? 'text-primary-600' : 'text-gray-500 hover:text-gray-900'
+    `relative px-5 py-2 text-sm font-semibold transition-colors duration-300 ${isActive ? 'text-primary-600' : 'text-gray-500 hover:text-gray-900'
     }`
 
   const mobileNavLinkClass = ({ isActive }) =>
-    `block px-5 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 ${
-      isActive ? 'text-primary-600 bg-primary-50/70 border border-primary-100/10' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+    `block px-5 py-2.5 text-sm font-semibold rounded-xl transition-all duration-300 ${isActive ? 'text-primary-600 bg-primary-50/70 border border-primary-100/10' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
     }`
 
   const NavItem = ({ to, children, end = false }) => (
@@ -64,19 +62,24 @@ export default function Navbar() {
 
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group shrink-0">
-            
+
             {/* --- Jpeg Logo Image --- */}
-            <img 
-              src={logoImg} 
-              alt="Pradarsh Logo" 
+            <img
+              src={logoImg}
+              alt="Pradarsh Logo"
               // Fixed square box so the logo can never push into the nav links
               className="h-9 w-9 object-cover rounded-lg group-hover:scale-105 transition-transform duration-300 drop-shadow-[0_0_8px_rgba(139,92,246,0.3)]"
             />
             {/* ---------------------- */}
-
-            <span className="font-black text-xl bg-gradient-to-r from-violet-600 via-primary-500 to-cyan-500 bg-clip-text text-transparent tracking-tight-premium drop-shadow-[0_0_12px_rgba(139,92,246,0.15)] whitespace-nowrap">
-              Pradarsh
-            </span>
+            {/* Updated Logo/Brand Name */}
+            <Link to="/" className="flex flex-col">
+              <span className="text-xl font-bold text-primary-600 leading-tight">
+                Pradarsh
+              </span>
+              <span className="text-[10px] uppercase tracking-wider text-gray-400 font-medium">
+                Where Talent meets Visibility
+              </span>
+            </Link>
           </Link>
 
           {/* Desktop nav links — centered */}
