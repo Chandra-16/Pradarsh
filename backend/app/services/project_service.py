@@ -24,10 +24,11 @@ class ProjectService:
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
-    # ── Read ─────────────────────────────────────────────────────────────────
+# ── Read ─────────────────────────────────────────────────────────────────
 
     def get_project_by_id(self, project_id: str) -> Optional[dict]:
         """Fetch a single project with author info."""
+        print(f"DEBUG [Service]: Attempting to fetch project {project_id}")
         try:
             response = (
                 supabase.table("projects")
@@ -36,10 +37,14 @@ class ProjectService:
                 .single()
                 .execute()
             )
+            
             if response.data:
                 project = response.data
-                # Flatten author info
-                profile = project.pop("profiles", {}) or {}
+                # Flatten author info safely
+                profile = project.get("profiles") or {}
+                if "profiles" in project:
+                    del project["profiles"]
+                
                 project["author_name"] = profile.get("full_name", "")
                 project["author_username"] = profile.get("username", "")
                 project["author_avatar"] = profile.get("avatar_url", "")
@@ -48,8 +53,23 @@ class ProjectService:
                 project["author_website"] = profile.get("website_url", "")
                 project["author_bio"] = profile.get("bio", "")
                 return project
+                
             return None
-        except Exception:
+            
+        except Exception as e:
+            # THIS EXPOSES THE HIDDEN ERROR:
+            print(f"CRITICAL DB ERROR in get_project_by_id: {str(e)}")
+            
+            # FALLBACK: If the profile join fails, just grab the project anyway!
+            try:
+                print("DEBUG [Service]: Attempting fallback query without profiles join...")
+                fallback = supabase.table("projects").select("*").eq("id", project_id).single().execute()
+                if fallback.data:
+                    print("DEBUG [Service]: Fallback successful. Project loaded without author data.")
+                    return fallback.data
+            except Exception as fallback_e:
+                print(f"DEBUG [Service]: Fallback also failed: {str(fallback_e)}")
+                
             return None
 
     def get_projects_paginated(self, page: int = 1, limit: int = 12) -> dict:

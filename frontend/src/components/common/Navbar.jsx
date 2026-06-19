@@ -63,18 +63,18 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
 
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 group">
+          <Link to="/" className="flex items-center gap-3 group shrink-0">
             
             {/* --- Jpeg Logo Image --- */}
             <img 
               src={logoImg} 
               alt="Pradarsh Logo" 
-              // We set height to h-9 (36px) to fit the 16 (64px) high navbar neatly
-              className="h-9 w-auto object-contain rounded-lg group-hover:scale-105 transition-transform duration-300 drop-shadow-[0_0_8px_rgba(139,92,246,0.3)]"
+              // Fixed square box so the logo can never push into the nav links
+              className="h-9 w-9 object-cover rounded-lg group-hover:scale-105 transition-transform duration-300 drop-shadow-[0_0_8px_rgba(139,92,246,0.3)]"
             />
             {/* ---------------------- */}
 
-            <span className="font-black text-xl bg-gradient-to-r from-violet-600 via-primary-500 to-cyan-500 bg-clip-text text-transparent tracking-tight-premium drop-shadow-[0_0_12px_rgba(139,92,246,0.15)]">
+            <span className="font-black text-xl bg-gradient-to-r from-violet-600 via-primary-500 to-cyan-500 bg-clip-text text-transparent tracking-tight-premium drop-shadow-[0_0_12px_rgba(139,92,246,0.15)] whitespace-nowrap">
               Pradarsh
             </span>
           </Link>

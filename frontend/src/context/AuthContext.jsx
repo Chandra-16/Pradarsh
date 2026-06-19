@@ -1,69 +1,58 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import { supabase } from '../services/api'
-import authService from '../services/authService'
+import { auth, syncWithBackend } from '../services/firebase'
+import { onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth'
 
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)         // Supabase auth user
-  const [profile, setProfile] = useState(null)   // Pradarsh profile from DB
-  const [session, setSession] = useState(null)   // Supabase session
+  const [user, setUser] = useState(null)         // Firebase auth user
+  const [profile, setProfile] = useState(null)   // Pradarsh profile from backend/Supabase
   const [loading, setLoading] = useState(true)   // Initial auth check loading
 
-  // Fetch the backend profile once we have a session
-  const fetchProfile = async () => {
-    try {
-      const profileData = await authService.getMyProfile()
-      setProfile(profileData)
-    } catch (err) {
-      console.error('Failed to fetch profile:', err)
-      setProfile(null)
-    }
-  }
-
   useEffect(() => {
-    // Get initial session on mount
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        fetchProfile()
+    // Firebase's listener fires once on mount with current state,
+    // then again on every login/logout/token refresh.
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setUser(firebaseUser)
+
+      if (firebaseUser) {
+        try {
+          const result = await syncWithBackend(firebaseUser)
+          setProfile(result.user)
+        } catch (err) {
+          console.error('Failed to sync/fetch profile:', err)
+          setProfile(null)
+        }
+      } else {
+        setProfile(null)
       }
+
       setLoading(false)
     })
 
-    // Listen for auth state changes (login, logout, token refresh, OAuth callback)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        setSession(session)
-        setUser(session?.user ?? null)
-        if (session?.user) {
-          await fetchProfile()
-        } else {
-          setProfile(null)
-        }
-        setLoading(false)
-      }
-    )
-
-    return () => subscription.unsubscribe()
+    return () => unsubscribe()
   }, [])
 
   const signOut = async () => {
-    await authService.signOut()
+    await firebaseSignOut(auth)
     setUser(null)
     setProfile(null)
-    setSession(null)
   }
 
   const refreshProfile = async () => {
-    if (user) await fetchProfile()
+    if (user) {
+      try {
+        const result = await syncWithBackend(user)
+        setProfile(result.user)
+      } catch (err) {
+        console.error('Failed to refresh profile:', err)
+      }
+    }
   }
 
   const value = {
     user,
     profile,
-    session,
     loading,
     signOut,
     refreshProfile,

@@ -1,21 +1,22 @@
-import { supabase } from './api'
+import { supabaseStorage } from './supabaseStorage'
+import { auth } from './firebase'
 
 const uploadService = {
   async uploadThumbnail(file) {
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = auth.currentUser
     if (!user) throw new Error('Not authenticated')
 
     const ext = file.name.split('.').pop() || 'jpg'
     const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-    const filePath = `${user.id}/${fileName}`
+    const filePath = `${user.uid}/${fileName}`
 
-    const { error } = await supabase.storage
+    const { error } = await supabaseStorage.storage
       .from('project-thumbnails')
       .upload(filePath, file, { cacheControl: '3600', upsert: true, contentType: file.type })
 
     if (error) throw new Error(error.message)
 
-    const { data: { publicUrl } } = supabase.storage
+    const { data: { publicUrl } } = supabaseStorage.storage
       .from('project-thumbnails')
       .getPublicUrl(filePath)
 
@@ -23,7 +24,7 @@ const uploadService = {
   },
 
   async uploadScreenshots(files) {
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = auth.currentUser
     if (!user) throw new Error('Not authenticated')
 
     const urls = [], paths = []
@@ -31,15 +32,15 @@ const uploadService = {
     for (const file of files) {
       const ext = file.name.split('.').pop() || 'jpg'
       const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-      const filePath = `${user.id}/${fileName}`
+      const filePath = `${user.uid}/${fileName}`
 
-      const { error } = await supabase.storage
+      const { error } = await supabaseStorage.storage
         .from('project-screenshots')
         .upload(filePath, file, { cacheControl: '3600', upsert: true, contentType: file.type })
 
       if (error) throw new Error(error.message)
 
-      const { data: { publicUrl } } = supabase.storage
+      const { data: { publicUrl } } = supabaseStorage.storage
         .from('project-screenshots')
         .getPublicUrl(filePath)
 

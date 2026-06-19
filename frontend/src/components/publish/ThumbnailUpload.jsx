@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
-import { Upload, X, Image } from 'lucide-react'
-import uploadService from '../../services/uploadService'
+import { Upload, X } from 'lucide-react'
+import api from '../../services/api'
 
 export default function ThumbnailUpload({ value, onChange, label = 'Thumbnail' }) {
   const [uploading, setUploading] = useState(false)
@@ -23,12 +23,18 @@ export default function ThumbnailUpload({ value, onChange, label = 'Thumbnail' }
     setError('')
     setUploading(true)
 
-    // Show local preview immediately
     const localUrl = URL.createObjectURL(file)
     setPreview(localUrl)
 
     try {
-      const result = await uploadService.uploadThumbnail(file)
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await api.post('/uploads/thumbnail', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+
+      const result = response.data.data
       setPreview(result.url)
       onChange(result.url)
     } catch (err) {
@@ -63,7 +69,6 @@ export default function ThumbnailUpload({ value, onChange, label = 'Thumbnail' }
       <label className="block text-sm font-medium text-gray-700">{label} *</label>
 
       {preview ? (
-        /* Preview state */
         <div className="relative rounded-2xl overflow-hidden border border-gray-200 bg-gray-50 aspect-video">
           <img src={preview} alt="Thumbnail preview" className="w-full h-full object-cover" />
           {uploading && (
@@ -83,7 +88,6 @@ export default function ThumbnailUpload({ value, onChange, label = 'Thumbnail' }
           )}
         </div>
       ) : (
-        /* Upload dropzone */
         <div
           onClick={() => inputRef.current?.click()}
           onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
