@@ -34,14 +34,10 @@ const uploadService = {
     const token = await user.getIdToken()
 
     const formData = new FormData()
-    
-    // Add all files to the SAME FormData object under the key 'files'
-    // This matches your backend's List[UploadFile] named 'files'
     for (const file of files) {
       formData.append('files', file)
     }
 
-    // Send everything in one single request
     const response = await fetch(`${API_URL}/uploads/screenshots`, {
       method: 'POST',
       headers: {
@@ -55,7 +51,8 @@ const uploadService = {
       throw new Error(err.detail || 'Screenshot upload failed')
     }
 
-    return await response.json()
+    const responseJson = await response.json()
+    return responseJson.data 
   },
 }
 
