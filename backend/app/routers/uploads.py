@@ -1,33 +1,49 @@
-from app.database.supabase import supabase
-import uuid
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
+from typing import List
+from app.dependencies.auth import get_current_user
+from app.services.storage_service import storage_service
+from app.utils.response import success_response
 
-class StorageService:
-    async def upload_thumbnail(self, user_id: str, file: any) -> dict:
-        file_bytes = await file.read()
-        filename = f"{user_id}/{uuid.uuid4()}.{file.filename.split('.')[-1]}"
-        
-        supabase.storage.from_("project-thumbnails").upload(
-            path=filename,
-            file=file_bytes,
-            file_options={"content-type": file.content_type}
+router = APIRouter()
+
+@router.post("/thumbnail")
+async def upload_thumbnail(
+    file: UploadFile = File(..., description="Project thumbnail image (JPEG, PNG, WebP, GIF — max 5MB)"),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Upload a single project thumbnail.
+    """
+    try:
+        # Validate file size here if needed (e.g., 5MB limit)
+        result = await storage_service.upload_thumbnail(
+            user_id=current_user["user_id"],
+            file=file,
         )
+        return success_response(data=result, message="Thumbnail uploaded successfully.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/screenshots")
+async def upload_screenshots(
+    files: List[UploadFile] = File(..., description="Screenshot images (up to 10, max 5MB each)"),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Upload multiple project screenshots (max 10).
+    """
+    if len(files) > 10:
+        raise HTTPException(status_code=400, detail="Maximum 10 screenshots allowed.")
         
-        url = supabase.storage.from_("project-thumbnails").get_public_url(filename)
-        return {"url": url, "path": filename}
-
-    async def upload_screenshots(self, user_id: str, files: list) -> dict:
-        urls = []
-        for file in files:
-            file_bytes = await file.read()
-            filename = f"{user_id}/{uuid.uuid4()}.{file.filename.split('.')[-1]}"
-            
-            supabase.storage.from_("project-screenshots").upload(
-                path=filename,
-                file=file_bytes,
-                file_options={"content-type": file.content_type}
-            )
-            urls.append(supabase.storage.from_("project-screenshots").get_public_url(filename))
-            
-        return {"urls": urls, "count": len(urls)}
-
-storage_service = StorageService()  
+    try:
+        result = await storage_service.upload_screenshots(
+            user_id=current_user["user_id"],
+            files=files,
+        )
+        return success_response(
+            data=result, 
+            message=f"{result['count']} screenshot(s) uploaded successfully."
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
