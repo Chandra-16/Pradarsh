@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Pencil, Eye, Calendar, ArrowRight, FolderKanban } from 'lucide-react'
+import { Pencil, Calendar, ArrowRight, FolderKanban } from 'lucide-react'
 import { motion } from 'framer-motion'
 import ProjectActions from './ProjectActions'
 import { formatDate, truncateText, getAvatarInitials, stringToColor } from '../../utils/helpers'
@@ -7,7 +7,7 @@ import { formatDate, truncateText, getAvatarInitials, stringToColor } from '../.
 function ProjectRow({ project, onDeleted, index }) {
   const {
     id, title, description, category,
-    thumbnail_url, status, view_count, created_at,
+    thumbnail_url, status, created_at,
   } = project
 
   return (
@@ -61,9 +61,6 @@ function ProjectRow({ project, onDeleted, index }) {
         </p>
 
         <div className="flex flex-wrap items-center gap-3.5 text-[11px] text-gray-400 font-semibold">
-          <span className="flex items-center gap-1">
-            <Eye className="w-3.5 h-3.5 text-gray-400/80" /> {view_count || 0} views
-          </span>
           <span className="flex items-center gap-1">
             <Calendar className="w-3.5 h-3.5 text-gray-400/80" /> {formatDate(created_at)}
           </span>

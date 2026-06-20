@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
-  ArrowLeft, Github, ExternalLink, Eye, Calendar,
+  ArrowLeft, Github, ExternalLink, Calendar,
   Tag, ChevronLeft, ChevronRight
 } from 'lucide-react'
 import Navbar from '../components/common/Navbar'
@@ -66,8 +66,7 @@ export default function ProjectDetails() {
   const {
     title, description, category, technologies = [],
     github_url, demo_url, thumbnail_url, screenshots = [],
-    view_count, created_at,
-    author_name, author_username, author_avatar,
+    created_at, author_name, author_username, author_avatar,
     author_bio, author_github, author_linkedin, author_website,
     user_id,
   } = project
@@ -141,10 +140,6 @@ export default function ProjectDetails() {
 
               {/* Stats row */}
               <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-                <span className="flex items-center gap-1.5">
-                  <Eye className="w-4 h-4" />
-                  {view_count || 0} views
-                </span>
                 <span className="flex items-center gap-1.5">
                   <Calendar className="w-4 h-4" />
                   {formatDate(created_at)}
@@ -340,10 +335,6 @@ export default function ProjectDetails() {
                 <div className="flex justify-between">
                   <span className="text-gray-500">Published</span>
                   <span className="font-medium text-gray-700">{formatDate(created_at)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Views</span>
-                  <span className="font-medium text-gray-700">{view_count || 0}</span>
                 </div>
                 {technologies.length > 0 && (
                   <div className="flex justify-between">
